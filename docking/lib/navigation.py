@@ -9,16 +9,21 @@ from .api import Api
 log = logging.getLogger(__name__)
 
 
-"""def generate_commands(garden: dict) -> list[str]:
+def generate_commands(garden: dict) -> list[str]:
     bed_length = garden["garden_height"]
     path_width = garden["path_width"]
     num_beds = garden["number_beds"]
+    num_plants = garden["number_of_plants"]
 
+    step = bed_length // num_plants
     commands = []
     for bed in range(num_beds):
-        commands.append(f"M{bed_length}")
-        
-        commands.append("C") 
+        for plant_idx in range(num_plants):
+            commands.append(f"M {step}")
+            commands.append("C")
+
+        if bed < num_beds - 1:
+            commands.append(f"M {path_width}")
         
         if bed < num_beds - 1:
             if bed % 2 == 0:
@@ -26,9 +31,9 @@ log = logging.getLogger(__name__)
             else:
                 commands.extend(["L", f"M{path_width}", "L"])
                 
-    return commands"""
+    return commands
 
-def generate_commands(garden: dict) -> list[str]:
+"""def generate_commands(garden: dict) -> list[str]:
     bed_length = garden["garden_height"]
     path_width = garden["path_width"]
     num_beds = garden["number_beds"]
@@ -43,7 +48,7 @@ def generate_commands(garden: dict) -> list[str]:
         if bed < num_beds - 1:
             commands.append(f"M {path_width}")
                 
-    return commands
+    return commands"""
 
 def execute_mission(esp: ESP32Connection, camera: CameraServer, garden: dict, api: Api = None, req_id: int = None) -> list[dict]:
     commands = generate_commands(garden)
