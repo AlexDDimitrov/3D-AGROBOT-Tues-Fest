@@ -25,11 +25,12 @@ def create_garden():
     path_width = data.get("path_width")
     number_beds = data.get("number_beds")
     plant = data.get("plant")
+    number_of_plants = data.get("number_of_plants")
 
-    if not all([garden_name, garden_width, garden_height, path_width, number_beds, plant]):
+    if not all([garden_name, garden_width, garden_height, path_width, number_beds, plant, number_of_plants]):
         return jsonify({"result": 202}), 400
 
-    GardenModel.create(user_id, garden_name, garden_width, garden_height, path_width, number_beds, plant)
+    GardenModel.create(user_id, garden_name, garden_width, garden_height, path_width, number_beds, plant, number_of_plants)
 
     logging.info(f"Create garden - user_id: {user_id} - {garden_name}")
     return jsonify({"result": 0}), 201
