@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -54,23 +55,14 @@ import com.example.a3d_agrobot_app.R
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-data class GardenData(
-    val id: Int = 0,
-    val garden_name: String = "",
-    val garden_width: Int = 0,
-    val garden_height: Int = 0,
-    val path_width: Int = 0,
-    val number_beds: Int = 0,
-    val plant: String = ""
-)
-
 @Composable
-fun GardenScreen(
+public fun GardenScreen(
     onAddClick: () -> Unit,
     onEditClick: (GardenData) -> Unit
 ) {
@@ -139,8 +131,7 @@ fun GardenScreen(
                 Text("Няма добавени градини", modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center, color = Color.Gray)
             } else {
                 LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxSize()
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     itemsIndexed(gardens) { index, garden ->
                         GardenListItem(
@@ -156,7 +147,7 @@ fun GardenScreen(
 }
 
 @Composable
-fun GardenListItem(displayIndex: Int, garden: GardenData, onEditClick: () -> Unit) {
+public fun GardenListItem(displayIndex: Int, garden: GardenData, onEditClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -198,13 +189,14 @@ fun GardenListItem(displayIndex: Int, garden: GardenData, onEditClick: () -> Uni
             Icon(
                 painter = painterResource(id = R.drawable.edit_icon),
                 contentDescription = "Edit",
-                tint = Color(0xFF3B6D11)
+                tint = Color(0xFF436B1F)
             )
         }
     }
 }
+
 @Composable
-fun StatCard(label: String, value: String, modifier: Modifier = Modifier) {
+public fun StatCard(label: String, value: String, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .background(Color.White, RoundedCornerShape(16.dp))
@@ -224,7 +216,7 @@ fun StatCard(label: String, value: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun CreateGardenScreen(onSuccess: () -> Unit, onBack: () -> Unit ) {
+public fun CreateGardenScreen(onSuccess: () -> Unit, onBack: () -> Unit ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
@@ -234,6 +226,7 @@ fun CreateGardenScreen(onSuccess: () -> Unit, onBack: () -> Unit ) {
     var pathWidth by rememberSaveable { mutableStateOf("") }
     var beds by rememberSaveable { mutableStateOf("") }
     var plant by rememberSaveable { mutableStateOf("") }
+    var plantsNum by rememberSaveable { mutableStateOf("") }
     var statusMessage by rememberSaveable { mutableStateOf("") }
     var isError by rememberSaveable { mutableStateOf(false) }
     var isLoading by rememberSaveable { mutableStateOf(false) }
@@ -250,7 +243,7 @@ fun CreateGardenScreen(onSuccess: () -> Unit, onBack: () -> Unit ) {
 
     val isFormFilled = gardenName.isNotBlank() && width.isNotBlank() &&
             height.isNotBlank() && pathWidth.isNotBlank() &&
-            beds.isNotBlank() && plant.isNotBlank()
+            beds.isNotBlank() && plant.isNotBlank() && plantsNum.isNotBlank()
 
     Column(
         modifier = Modifier
@@ -305,7 +298,8 @@ fun CreateGardenScreen(onSuccess: () -> Unit, onBack: () -> Unit ) {
                 label = { Text("Ширина (см)") },
                 singleLine = true, colors = textFieldColors,
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Next
                 ),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.weight(1f)
@@ -315,7 +309,8 @@ fun CreateGardenScreen(onSuccess: () -> Unit, onBack: () -> Unit ) {
                 label = { Text("Дължина (см)") },
                 singleLine = true, colors = textFieldColors,
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Next
                 ),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.weight(1f)
@@ -330,11 +325,16 @@ fun CreateGardenScreen(onSuccess: () -> Unit, onBack: () -> Unit ) {
                 label = { Text("Ширина пътека (cм)") },
                 singleLine = true, colors = textFieldColors,
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Next
                 ),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.weight(1f)
             )
+        }
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
             OutlinedTextField(
                 value = beds,
                 onValueChange = { beds = it },
@@ -342,7 +342,21 @@ fun CreateGardenScreen(onSuccess: () -> Unit, onBack: () -> Unit ) {
                 singleLine = true,
                 colors = textFieldColors,
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Next
+                ),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.weight(1f)
+            )
+            OutlinedTextField(
+                value = plantsNum,
+                onValueChange = { plantsNum = it },
+                label = { Text("Брой растения на леха") },
+                singleLine = true,
+                colors = textFieldColors,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Next
                 ),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.weight(1f)
@@ -382,7 +396,8 @@ fun CreateGardenScreen(onSuccess: () -> Unit, onBack: () -> Unit ) {
                                 garden_height = height.toInt(),
                                 path_width = pathWidth.toInt(),
                                 number_beds = beds.toInt(),
-                                plant = plant
+                                plant = plant,
+                                plantsNum = plantsNum.toInt()
                             )
                         )
                         withContext(Dispatchers.Main) {
@@ -426,7 +441,7 @@ fun CreateGardenScreen(onSuccess: () -> Unit, onBack: () -> Unit ) {
 }
 
 @Composable
-fun EditGardenScreen(garden: GardenData, onSuccess: () -> Unit, onBack: () -> Unit) {
+public fun EditGardenScreen(garden: GardenData, onSuccess: () -> Unit, onBack: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
@@ -436,6 +451,7 @@ fun EditGardenScreen(garden: GardenData, onSuccess: () -> Unit, onBack: () -> Un
     var pathWidth by rememberSaveable { mutableStateOf(garden.path_width.toString()) }
     var beds by rememberSaveable { mutableStateOf(garden.number_beds.toString()) }
     var plant by rememberSaveable { mutableStateOf(garden.plant) }
+    var plantsNum by rememberSaveable { mutableStateOf(garden.plantsNum.toString()) }
 
     var statusMessage by rememberSaveable { mutableStateOf("") }
     var isLoading by rememberSaveable { mutableStateOf(false) }
@@ -477,8 +493,6 @@ fun EditGardenScreen(garden: GardenData, onSuccess: () -> Unit, onBack: () -> Un
                         modifier = Modifier.size(20.dp)
                     )
                 }
-            }
-
             Spacer(modifier = Modifier.height(32.dp))
             Text(
                 "Редактирайте градина",
@@ -486,7 +500,7 @@ fun EditGardenScreen(garden: GardenData, onSuccess: () -> Unit, onBack: () -> Un
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF1A3207)
             )
-
+            }
             OutlinedTextField(
                 value = gardenName,
                 onValueChange = { gardenName = it },
@@ -510,10 +524,29 @@ fun EditGardenScreen(garden: GardenData, onSuccess: () -> Unit, onBack: () -> Un
             Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedTextField(
-                value = beds, onValueChange = { beds = it },
+                value = beds,
+                onValueChange = { beds = it },
                 label = { Text("Брой лехи") },
                 singleLine = true, colors = textFieldColors,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Next
+                ),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            OutlinedTextField(
+                value = plantsNum,
+                onValueChange = { plantsNum = it },
+                label = { Text("Брой растения на леха") },
+                singleLine = true, colors = textFieldColors,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Next
+                ),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.fillMaxWidth()
             )
@@ -543,7 +576,8 @@ fun EditGardenScreen(garden: GardenData, onSuccess: () -> Unit, onBack: () -> Un
                                 garden_height = height.toInt(),
                                 path_width = pathWidth.toInt(),
                                 number_beds = beds.toInt(),
-                                plant = plant
+                                plant = plant,
+                                plantsNum = plantsNum.toInt()
                             )
                             val code = GardenRepository().editGarden(token, garden.id, updatedData)
 
@@ -580,11 +614,12 @@ fun EditGardenScreen(garden: GardenData, onSuccess: () -> Unit, onBack: () -> Un
                 if (isLoading) CircularProgressIndicator(
                     color = Color.White,
                     strokeWidth = 2.dp,
-                    modifier = Modifier.size(4.dp)
+                    modifier = Modifier.size(20.dp)
                 )
                 else Text("Запазете промените", fontSize = 16.sp, fontWeight = FontWeight.Medium)
             }
         }
     }
+
 
 

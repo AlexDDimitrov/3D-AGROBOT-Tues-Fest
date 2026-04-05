@@ -40,7 +40,8 @@ class GardenRepository {
                             garden_height = obj.optInt("garden_height", 0),
                             path_width = obj.optInt("path_width", 0),
                             number_beds = obj.optInt("number_beds", 0),
-                            plant = obj.optString("plant", "")
+                            plant = obj.optString("plant", ""),
+                            plantsNum = obj.optInt("plantsNum", 0)
                         )
                     )
                 }
@@ -69,6 +70,7 @@ class GardenRepository {
             put("path_width", data.path_width)
             put("number_beds", data.number_beds)
             put("plant", data.plant)
+            put("plantsNum", data.plantsNum)
         }.toString()
 
         connection.outputStream.use {
@@ -96,6 +98,7 @@ class GardenRepository {
             put("path_width", data.path_width)
             put("number_beds", data.number_beds)
             put("plant", data.plant)
+            put("plantsNum", data.plantsNum)
         }.toString()
 
         connection.outputStream.use { it.write(body.toByteArray()) }

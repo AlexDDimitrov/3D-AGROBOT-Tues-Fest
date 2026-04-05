@@ -54,7 +54,6 @@ fun HealthCheckerScreen() {
     var reports by remember { mutableStateOf<List<ReportData>>(emptyList()) }
     var loading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf("") }
-    var hasServerNotification by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         val token = withContext(Dispatchers.IO) {

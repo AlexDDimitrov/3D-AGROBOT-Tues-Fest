@@ -47,6 +47,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -160,7 +161,8 @@ fun SignupScreen(onSuccess: () -> Unit = {}) {
                             singleLine = true,
                             onValueChange = { new_name -> first_name = new_name },
                             keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Text
+                                keyboardType = KeyboardType.Text,
+                                imeAction = ImeAction.Next
                             ),
                             colors = textFieldColors,
                             shape = RoundedCornerShape(12.dp),
@@ -173,7 +175,8 @@ fun SignupScreen(onSuccess: () -> Unit = {}) {
                             singleLine = true,
                             onValueChange = { new_name -> last_name = new_name },
                             keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Text
+                                keyboardType = KeyboardType.Text,
+                                imeAction = ImeAction.Next
                             ),
                             colors = textFieldColors,
                             shape = RoundedCornerShape(12.dp),
@@ -198,7 +201,10 @@ fun SignupScreen(onSuccess: () -> Unit = {}) {
                             }
                         },
                         singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Email,
+                            imeAction = ImeAction.Next
+                        ),
                         colors = textFieldColors,
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth()
@@ -225,7 +231,8 @@ fun SignupScreen(onSuccess: () -> Unit = {}) {
                         },
                         label = { Text(text = "Парола") },
                         keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Password
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Next
                         ),
                         visualTransformation = if (passwordVisibility)
                             VisualTransformation.None
