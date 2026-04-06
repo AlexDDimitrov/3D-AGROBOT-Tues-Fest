@@ -19,8 +19,8 @@
 #define HREF_GPIO_NUM     23
 #define PCLK_GPIO_NUM     22
 
-const char* ssid = "AlexHONORMagic7Lite";
-const char* password = "AlexDPro";
+const char* ssid = "    ";
+const char* password = "    ";
 const char* server_ip = "10.141.58.146";
 int server_port = 8888;
 
