@@ -17,20 +17,18 @@ def generate_commands(garden: dict) -> list[str]:
 
     step = bed_length // num_plants
     commands = []
+
     for bed in range(num_beds):
         for plant_idx in range(num_plants):
             commands.append(f"M {step}")
             commands.append("CAPTURE")
 
         if bed < num_beds - 1:
-            commands.append(f"M {path_width}")
-        
-        if bed < num_beds - 1:
             if bed % 2 == 0:
-                commands.extend(["R", f"M{path_width}", "R"])
+                commands.extend(["R", f"M {path_width}", "R"])
             else:
-                commands.extend(["L", f"M{path_width}", "L"])
-                
+                commands.extend(["L", f"M {path_width}", "L"])
+
     return commands
 
 """def generate_commands(garden: dict) -> list[str]:
