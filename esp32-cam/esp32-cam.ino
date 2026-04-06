@@ -21,7 +21,7 @@
 
 const char* ssid = "AlexHONORMagic7Lite";
 const char* password = "AlexDPro";
-const char* server_ip = "10.196.140.146 ";
+const char* server_ip = "10.141.58.146";
 int server_port = 8888;
 
 WebSocketsClient webSocket;
