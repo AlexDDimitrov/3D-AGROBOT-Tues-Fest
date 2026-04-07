@@ -40,7 +40,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                AppNavigation(modifier = Modifier.padding(innerPadding))
+                AppNavigation(modifier = Modifier)
             }
         }
     }
@@ -115,8 +115,6 @@ fun AppNavigation(modifier: Modifier = Modifier) {
             kotlinx.coroutines.delay(5 * 60 * 1000L)
         }
     }
-
-
 
 
     NavHost(
