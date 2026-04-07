@@ -1,7 +1,7 @@
 #include <WiFi.h>
 
-const char* SSID     = "AlexHONORMagic7Lite";
-const char* PASSWORD = "AlexDPro";
+const char* SSID     = "    ";
+const char* PASSWORD = "    ";
 const int   PORT     = 8080;
 
 WiFiServer server(PORT);
