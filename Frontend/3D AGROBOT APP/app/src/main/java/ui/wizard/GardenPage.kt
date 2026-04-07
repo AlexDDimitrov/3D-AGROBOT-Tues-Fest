@@ -1,5 +1,9 @@
 package ui.wizard
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -57,6 +61,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -351,7 +356,7 @@ public fun CreateGardenScreen(onSuccess: () -> Unit, onBack: () -> Unit ) {
             OutlinedTextField(
                 value = plantsNum,
                 onValueChange = { plantsNum = it },
-                label = { Text("Брой растения на леха") },
+                label = { Text("Растения на леха") },
                 singleLine = true,
                 colors = textFieldColors,
                 keyboardOptions = KeyboardOptions(
@@ -541,7 +546,7 @@ public fun EditGardenScreen(garden: GardenData, onSuccess: () -> Unit, onBack: (
             OutlinedTextField(
                 value = plantsNum,
                 onValueChange = { plantsNum = it },
-                label = { Text("Брой растения на леха") },
+                label = { Text("Растения на леха") },
                 singleLine = true, colors = textFieldColors,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,

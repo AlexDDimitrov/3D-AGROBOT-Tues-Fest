@@ -69,10 +69,6 @@ fun HealthCheckerScreen() {
                 val repo = ReportRepository()
                 reports = repo.getReports(token)
 
-                val notifText = repo.getNotification(token)
-                if (notifText != null) {
-                    showNotification(context, notifText)
-                }
             }
         } catch (e: Exception) {
             error = "Грешка: ${e.message}"
@@ -245,26 +241,3 @@ fun ReportCard(report: ReportData) {
 }
 
 
-fun showNotification(context: Context, message: String) {
-    val channelId = "plant_health_alerts"
-    val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-    if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        val channel = NotificationChannel(
-            channelId,
-            "Здраве на растенията",
-            NotificationManager.IMPORTANCE_DEFAULT
-        )
-        notificationManager.createNotificationChannel(channel)
-    }
-
-    val notification = NotificationCompat.Builder(context, channelId)
-        .setSmallIcon(R.drawable.illness)
-        .setContentTitle("Проблем с растение!")
-        .setContentText(message)
-        .setStyle(NotificationCompat.BigTextStyle().bigText(message))
-        .setColor("#FFB74D".toColorInt())
-        .setAutoCancel(true)
-
-    notificationManager.notify(1, notification.build())
-}
