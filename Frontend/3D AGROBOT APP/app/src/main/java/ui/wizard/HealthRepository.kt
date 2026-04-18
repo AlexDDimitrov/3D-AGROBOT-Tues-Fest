@@ -5,7 +5,7 @@ import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 class ReportRepository {
-    private val baseUrl = "https://3d-agrobot-production.up.railway.app"
+    private val baseUrl = "https://3d-agrobot-tues-fest-production.up.railway.app"
 
     fun getReports(token: String): List<ReportData> {
         val connection = (URL("$baseUrl/report/list").openConnection() as HttpURLConnection).apply {

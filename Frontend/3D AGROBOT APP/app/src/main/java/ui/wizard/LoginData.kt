@@ -9,7 +9,7 @@ class LoginData {
         email: String,
         password: String
     ): String {
-        val url = URL("https://3d-agrobot-production.up.railway.app/auth/login")
+        val url = URL("https://3d-agrobot-tues-fest-production.up.railway.app/auth/login")
         val connection = url.openConnection() as HttpURLConnection
         connection.requestMethod = "POST"
         connection.setRequestProperty("Content-Type", "application/json")

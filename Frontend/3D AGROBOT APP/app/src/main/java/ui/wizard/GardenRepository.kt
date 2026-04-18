@@ -7,7 +7,7 @@ import java.net.URL
 
 class GardenRepository {
 
-    private val baseUrl = "https://3d-agrobot-production.up.railway.app"
+    private val baseUrl = "https://3d-agrobot-tues-fest-production.up.railway.app"
 
     fun getGardens(token: String): List<GardenData> {
         val url = URL("$baseUrl/garden/list")

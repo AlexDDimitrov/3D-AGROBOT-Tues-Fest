@@ -5,7 +5,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 class StartRobotRequest {
-    private val baseUrl = "https://3d-agrobot-production.up.railway.app"
+    private val baseUrl = "https://3d-agrobot-tues-fest-production.up.railway.app"
 
     fun startRobot(token: String, gardenId: Int): Int {
         val body = """
