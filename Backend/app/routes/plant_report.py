@@ -38,14 +38,21 @@ def analyze_from_app():
     plant = data.get("plant")
 
     if not all([image_b64, garden_id, garden_request_id, plant]):
-        return jsonify({"result": 202}), 400
+        return jsonify({"result": 202, "message": "Missing required fields"}), 400
 
     try:
         with tempfile.NamedTemporaryFile(suffix=".jpg", delete=True) as f:
-            f.write(b64.b64decode(image_b64))
-            f.flush()
+            try:
+                f.write(b64.b64decode(image_b64))
+                f.flush()
+            except Exception as b64_err:
+                return jsonify({"result": 202, "error": "Invalid image format"}), 400
             
             analysis = analyze_image(f.name, plant)
+
+        if not isinstance(analysis, dict):
+            logging.error(f"AI returned non-dict: {analysis}")
+            return jsonify({"result": 500, "error": "AI response format error"}), 500
 
         PlantReportModel.create(garden_request_id, garden_id, request.user_id, analysis)
 
@@ -53,8 +60,15 @@ def analyze_from_app():
         return jsonify({"result": 0, "analysis": analysis}), 201
 
     except Exception as e:
-        logging.error(f"Analysis error: {e}")
-        return jsonify({"result": 500, "error": str(e)}), 500
+        error_msg = str(e)
+        logging.error(f"Analysis error: {error_msg}")
+
+        if "503" in error_msg or "high demand" in error_msg.lower():
+            return jsonify({
+                "result": 503, 
+                "error": "Gemini е претоварен. Моля, опитайте отново след минута."
+            }), 503
+        return jsonify({"result": 500, "error": f"Internal Error: {error_msg}"}), 500
  
 @plant_report_bp.get("/list")
 @login_required
