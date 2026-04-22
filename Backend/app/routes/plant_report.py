@@ -3,6 +3,7 @@ from flask import Blueprint, request, jsonify
 from ..middleware.auth_guard import login_required
 from ..models.plant_report import PlantReportModel
 from ..models.garden_request import GardenRequestModel
+import requests
  
 plant_report_bp = Blueprint("plant_report", __name__)
  
@@ -24,23 +25,6 @@ def submit_report():
  
     logging.info(f"Plant report saved - garden_id: {garden_id} - health: {report.get('health')}")
     return jsonify({"result": 0}), 201
-
-def submit_report(self, report: dict, garden_request_id: int, garden_id: int):
-    """try:
-        resp = requests.post(
-            f"{self.base_url}/report/submit",
-            headers=self.headers,
-            json={
-                "garden_request_id": garden_request_id,
-                "garden_id": garden_id,
-                "report": report
-            }
-        )
-        log.info(f"Report submit: {resp.status_code}")
-        return resp.json()
-    except Exception as e:
-        log.error(f"Report грешка: {e}")
-        return None"""
 
 @plant_report_bp.post("/analyze")
 @login_required
@@ -64,6 +48,23 @@ def analyze_from_app():
 
     """from ....docking.lib.api import Api
     Api.submit_report(analysis, garden_request_id, garden_id)"""
+
+    try:
+        """"resp = requests.post(
+            f"{self.base_url}/report/submit",
+            headers=self.headers,
+            json={
+                "garden_request_id": garden_request_id,
+                "garden_id": garden_id,
+                "report": report
+            }
+        )
+        log.info(f"Report submit: {resp.status_code}")
+        return resp.json()
+        TO DO""""
+    except Exception as e:
+        log.error(f"Report грешка: {e}")
+        return None
 
     PlantReportModel.create(garden_request_id, garden_id, request.user_id, analysis)
     return jsonify({"result": 0, "analysis": analysis}), 201
