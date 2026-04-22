@@ -49,13 +49,15 @@ import kotlinx.coroutines.withContext
 import androidx.core.graphics.toColorInt
 
 @Composable
-fun HealthCheckerScreen() {
+fun HealthCheckerScreen(refreshKey: Int = 0) {
     val context = LocalContext.current
     var reports by remember { mutableStateOf<List<ReportData>>(emptyList()) }
     var loading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
+        loading = true
+        error = ""
         val token = withContext(Dispatchers.IO) {
             TokenStore.getToken(context)
         }
@@ -79,7 +81,6 @@ fun HealthCheckerScreen() {
     val allHealthy = reports.isNotEmpty() && reports.none {
         it.health == "sick" || it.health == "ill"
     }
-    val hasSickPlants = reports.any { it.health == "sick" || it.health == "ill" }
 
     Column(
         modifier = Modifier

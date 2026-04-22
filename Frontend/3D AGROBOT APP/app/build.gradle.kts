@@ -1,9 +1,14 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
 }
 
+val localProps = Properties()
+localProps.load(FileInputStream(rootProject.file("local.properties")))
 android {
     namespace = "com.example.a3d_agrobot_app"
     compileSdk = 36
@@ -14,8 +19,11 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
+        
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "VISION_API_KEY", "\"${localProps["VISION_API_KEY"]}\"")
     }
 
     buildTypes {
@@ -36,6 +44,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -52,6 +61,7 @@ dependencies {
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.compose.runtime)
+    implementation(libs.androidx.material3)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

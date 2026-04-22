@@ -1,5 +1,6 @@
 package ui.wizard
 
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -35,6 +36,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -52,44 +54,17 @@ import com.example.a3d_agrobot_app.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import ui.wizard.robot_setup.RequirementsPage
 
 @Composable
-fun RobotScreen() {
+fun RobotScreen(onStartClick: (Int, String) -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
     var gardens by remember { mutableStateOf<List<GardenData>>(emptyList()) }
     var loading by remember { mutableStateOf(true) }
-    var robotStatus by remember { mutableStateOf<Int?>(null) }
-    var statusMessage by remember { mutableStateOf("") }
-    var isLoading by remember { mutableStateOf(false) }
     var token by remember { mutableStateOf<String?>(null) }
     val totalBeds = gardens.sumOf { it.number_beds }
-
-
-    fun connectRobot(gardenId: Int) {
-        isLoading = true
-        statusMessage = ""
-        scope.launch(Dispatchers.IO) {
-            try {
-                val result = StartRobotRequest().startRobot(token!!, gardenId)
-                withContext(Dispatchers.Main) {
-                    statusMessage = when (result) {
-                        0    -> "Заявката е изпратена!"
-                        301  -> "Вече има активна заявка"
-                        202  -> "Моля изберете градина"
-                        else -> "Неизвестна грешка: $result"
-                    }
-                    isLoading = false
-                }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    statusMessage = "Грешка: ${e.message}"
-                    isLoading = false
-                }
-            }
-        }
-    }
 
 
     LaunchedEffect(Unit) {
@@ -102,37 +77,6 @@ fun RobotScreen() {
         loading = false
     }
 
-    LaunchedEffect(Unit) {
-        while (true) {
-            val currentToken = TokenStore.getToken(context)
-            if (currentToken != null) {
-                val status = withContext(Dispatchers.IO) {
-                    try {
-                        StartRobotRequest().getStatus(currentToken)
-                    } catch (e: Exception) {
-                        null
-                    }
-                }
-                robotStatus = status
-            }
-            kotlinx.coroutines.delay(5000)
-        }
-    }
-
-    val (statusText, statusColor) = when {
-        statusMessage.isNotEmpty() -> {
-            val color = if (statusMessage.startsWith("Грешка") || statusMessage.startsWith("Вече"))
-                Color(0xFFE57373) else Color(0xFF3B6D11)
-            statusMessage to color
-        }
-        else -> when (robotStatus) {
-            0 -> "Осъществяване на връзка..."  to Color(0xFF888800)
-            1 -> "Роботът извършва работа" to Color(0xFF3B6D11)
-            2 -> "Роботът приключи с работата си" to Color(0xFF1D6B2F)
-            null -> "Няма активна заявка" to Color.Gray
-            else -> "Статус: $robotStatus" to Color.Gray
-        }
-    }
 
     Column(
         modifier = Modifier
@@ -147,7 +91,7 @@ fun RobotScreen() {
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                "Изберете градина, за да стартирате робота",
+                "Свързване с робот",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF1A3207)
@@ -163,21 +107,6 @@ fun RobotScreen() {
             }
             Spacer(modifier = Modifier.height(8.dp))
 
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(statusColor.copy(alpha = 0.1f))
-                    .padding(horizontal = 16.dp, vertical = 10.dp)
-            ) {
-                Text(
-                    text = statusText,
-                    color = statusColor,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 14.sp
-                )
-            }
 
             Spacer(modifier = Modifier.height(16.dp))
             if (loading) {
@@ -200,7 +129,40 @@ fun RobotScreen() {
                         ListItem(
                             displayIndex = index + 1,
                             garden = garden,
-                            onStartClick = { connectRobot(garden.id) }
+                            onStartClick = { gardenId ->
+                                scope.launch {
+                                    val currentToken = token ?: return@launch
+                                    withContext(Dispatchers.IO) {
+                                        try {
+                                            val url =
+                                                java.net.URL("https://3d-agrobot-tues-fest-production.up.railway.app/garden-request/start")
+                                            val connection =
+                                                url.openConnection() as java.net.HttpURLConnection
+                                            connection.requestMethod = "POST"
+                                            connection.setRequestProperty(
+                                                "Authorization",
+                                                "Bearer $currentToken"
+                                            )
+                                            connection.setRequestProperty(
+                                                "Content-Type",
+                                                "application/json"
+                                            )
+                                            connection.doOutput = true
+                                            val body = org.json.JSONObject().apply {
+                                                put("garden_id", gardenId)
+                                            }
+                                            connection.outputStream.write(
+                                                body.toString().toByteArray()
+                                            )
+                                            connection.inputStream.bufferedReader().readText()
+                                            connection.disconnect()
+                                        } catch (e: Exception) {
+
+                                        }
+                                    }
+                                    onStartClick(gardenId, garden.plant)
+                                }
+                            }
                         )
                     }
                 }
@@ -248,10 +210,11 @@ fun ListItem(displayIndex: Int, garden: GardenData, onStartClick: (Int) -> Unit)
             )
         }
 
-        IconButton(onClick = { onStartClick(garden.id) }) {
+        IconButton(
+            onClick = { onStartClick(garden.id) }) {
             Icon(
                 painter = painterResource(id = R.drawable.start_icon),
-                contentDescription = "Edit",
+                contentDescription = "Start",
                 tint = Color(0xFF3B6D11)
             )
         }
