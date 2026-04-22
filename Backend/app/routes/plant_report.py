@@ -24,7 +24,29 @@ def submit_report():
  
     logging.info(f"Plant report saved - garden_id: {garden_id} - health: {report.get('health')}")
     return jsonify({"result": 0}), 201
- 
+
+@plant_report_bp.post("/analyze")
+@login_required
+def analyze_from_app():
+    data = request.get_json()
+    image_b64 = data.get("image")
+    garden_id = data.get("garden_id")
+    garden_request_id = data.get("garden_request_id")
+    plant = data.get("plant")
+
+    if not all([image_b64, garden_id, garden_request_id, plant]):
+        return jsonify({"result": 202}), 400
+
+    import tempfile, base64 as b64
+    with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as f:
+        f.write(b64.b64decode(image_b64))
+        path = f.name
+
+    from ....docking.lib.gemini import analyze_image
+    analysis = analyze_image(path, plant)
+
+    PlantReportModel.create(garden_request_id, garden_id, request.user_id, analysis)
+    return jsonify({"result": 0, "analysis": analysis}), 201
  
 @plant_report_bp.get("/list")
 @login_required
