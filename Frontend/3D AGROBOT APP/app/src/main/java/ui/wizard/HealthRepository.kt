@@ -39,24 +39,4 @@ class ReportRepository {
             )
         }
     }
-    fun getNotification(token: String): String? {
-        val connection = (URL("$baseUrl/report/notifications").openConnection() as HttpURLConnection).apply {
-            requestMethod = "GET"
-            setRequestProperty("Authorization", "Bearer $token")
-        }
-        val response = connection.inputStream.bufferedReader().readText()
-        val json = JSONObject(response)
-
-        if (json.getBoolean("has_notifications")) {
-            val notifications = json.getJSONArray("notifications")
-            val first = notifications.getJSONObject(0)
-
-            val plantType = first.getString("plant_type")
-            val issues = first.getJSONArray("issues")
-            val issuesText = (0 until issues.length()).joinToString(", ") { issues.getString(it) }
-
-            return "$plantType: $issuesText"
-        }
-        return null
-    }
 }

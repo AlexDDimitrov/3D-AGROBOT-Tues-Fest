@@ -1,38 +1,20 @@
 package ui.wizard
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -48,31 +30,41 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.json.JSONObject
 import com.example.a3d_agrobot_app.R
+import ui.wizard.robot_setup.BluetoothConnectionApp
+import ui.wizard.robot_setup.CameraSetupScreen
+import ui.wizard.robot_setup.LiveCameraScreen
+import ui.wizard.robot_setup.LiveCameraViewModel
+import ui.wizard.robot_setup.RequirementsPageContent
+import ui.wizard.robot_setup.SharedViewModel
+import ui.wizard.robot_setup.WifiConfigurationApp
 
 @Composable
 fun HomeScreen(onLogout: () -> Unit = {}) {
     val context = LocalContext.current
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
-    var gardenScreen by remember { mutableStateOf("list") }
+    var gardenScreen by rememberSaveable  { mutableStateOf("list") }
     var selectedGarden by remember { mutableStateOf<GardenData?>(null) }
+    var currentToken by remember { mutableStateOf("") }
+    var healthRefreshKey by remember { mutableIntStateOf(0) }
+    var robotScreen by rememberSaveable  { mutableStateOf("list") }
+    var selectedGardenId by rememberSaveable  { mutableStateOf(-1) }
+    val sharedViewModel: SharedViewModel = viewModel()
+    val navController = rememberNavController()
+
 
     LaunchedEffect(Unit) {
         firstName = withContext(Dispatchers.IO) {
@@ -80,9 +72,10 @@ fun HomeScreen(onLogout: () -> Unit = {}) {
         lastName = withContext(Dispatchers.IO) {
             TokenStore.getLastName(context) ?: ""
         }
+        currentToken = withContext(Dispatchers.IO) { TokenStore.getToken(context) ?: "" }
     }
 
-    var selectedTab by remember { mutableIntStateOf(0) }
+    var selectedTab by rememberSaveable  { mutableIntStateOf(0) }
 
     Scaffold (
         modifier = Modifier
@@ -171,13 +164,116 @@ fun HomeScreen(onLogout: () -> Unit = {}) {
                         )
                     }
                 }
-                1 -> RobotScreen()
-                2 -> HealthCheckerScreen()
+                1 -> when (robotScreen) {
+                    "list" -> RobotScreen(
+                        onStartClick = { gardenId, plant ->
+                            selectedGardenId = gardenId
+                            sharedViewModel.gardenId = gardenId
+                            sharedViewModel.gardenPlant = plant
+
+                            CoroutineScope(Dispatchers.IO).launch {
+                                try {
+                                    val startUrl = java.net.URL(
+                                        "https://3d-agrobot-tues-fest-production.up.railway.app/garden-request/start"
+                                    )
+                                    val startConn = startUrl.openConnection()
+                                            as java.net.HttpURLConnection
+                                    startConn.requestMethod = "POST"
+                                    startConn.setRequestProperty("Authorization", "Bearer $currentToken")
+                                    startConn.setRequestProperty("Content-Type", "application/json")
+                                    startConn.doOutput = true
+                                    val startBody = org.json.JSONObject().apply {
+                                        put("garden_id", gardenId)
+                                    }
+                                    startConn.outputStream.write(startBody.toString().toByteArray())
+                                    startConn.inputStream.bufferedReader().readText()
+                                    startConn.disconnect()
+                                } catch (e: Exception) {
+                                }
+
+                                try {
+                                    val statusUrl = java.net.URL(
+                                        "https://3d-agrobot-tues-fest-production.up.railway.app/garden-request/status"
+                                    )
+                                    val statusConn = statusUrl.openConnection()
+                                            as java.net.HttpURLConnection
+                                    statusConn.requestMethod = "GET"
+                                    statusConn.setRequestProperty("Authorization", "Bearer $currentToken")
+                                    val statusResponse = statusConn.inputStream.bufferedReader().readText()
+                                    statusConn.disconnect()
+
+                                    val statusJson = org.json.JSONObject(statusResponse)
+                                    val requestObj = statusJson.optJSONObject("request")
+                                    val requestId = requestObj?.getInt("id") ?: -1
+
+                                    withContext(Dispatchers.Main) {
+                                        sharedViewModel.gardenRequestId = requestId
+                                        robotScreen = "welcome"
+                                    }
+                                } catch (e: Exception) {
+                                    withContext(Dispatchers.Main) {
+                                        robotScreen = "welcome"
+                                    }
+                                }
+                            }
+                        }
+                    )
+                    "welcome" -> RequirementsPageContent(
+                        onContinue = { robotScreen = "bluetooth" },
+                        navController = navController,
+                        onBack = { robotScreen = "list" },
+                    )
+                    "bluetooth" -> BluetoothConnectionApp(
+                        header = "Свързване чрез Bluetooth",
+                        viewModel = sharedViewModel.bluetoothViewModel,
+                        bluetoothManager = sharedViewModel.bluetoothManager,
+                        onContinue = { robotScreen = "wifi" },
+                        navController = navController,
+                        onBack = { robotScreen = "welcome" },
+                    )
+                    "wifi" -> WifiConfigurationApp(
+                        header = "Свързване с Wi-Fi",
+                        viewModel = sharedViewModel.wifiViewModel,
+                        onContinue = { robotScreen = "camera" },
+                        navController = navController,
+                        onBack = { robotScreen = "bluetooth" },
+                    )
+                    "camera" -> CameraSetupScreen(
+                        header = "Тестване на камерата",
+                        viewModel = sharedViewModel.cameraViewModel,
+                        onContinue = {
+                            val ip = sharedViewModel.wifiViewModel.deviceIp ?: "192.168.1.100"
+                            sharedViewModel.streamUrl = "http://$ip:81/stream"
+                            robotScreen = "live"
+                        },
+                        navController = navController,
+                        onBack = { robotScreen = "wifi" },
+                        )
+                    "live" -> {
+                        val liveCameraViewModel = remember {
+                            LiveCameraViewModel(streamUrl = sharedViewModel.streamUrl)
+                        }
+                        LiveCameraScreen(
+                            header = "Наблюдение в реално време",
+                            viewModel = liveCameraViewModel,
+                            gardenId = sharedViewModel.gardenId,
+                            gardenRequestId = sharedViewModel.gardenRequestId,
+                            token = currentToken,
+                            plant = sharedViewModel.gardenPlant,
+                            onReportSaved = {
+                                healthRefreshKey++
+                            },
+                            navController = navController,
+                            onBack = { robotScreen = "camera" },
+                        )
+                    }
+                }
+
+                2 -> HealthCheckerScreen(refreshKey = healthRefreshKey)
             }
         }
     }
 }
-
 @Composable
 fun BottomNavigationBar(
     selectedTab: Int,
