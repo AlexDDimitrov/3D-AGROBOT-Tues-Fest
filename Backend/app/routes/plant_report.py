@@ -66,7 +66,7 @@ def analyze_from_app():
         if "503" in error_msg or "high demand" in error_msg.lower():
             return jsonify({
                 "result": 503, 
-                "error": "Gemini е претоварен. Моля, опитайте отново след минута."
+                "error": "Gemini is overloaded. Please try again in a minute.."
             }), 503
         return jsonify({"result": 500, "error": f"Internal Error: {error_msg}"}), 500
  
