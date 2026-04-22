@@ -25,6 +25,23 @@ def submit_report():
     logging.info(f"Plant report saved - garden_id: {garden_id} - health: {report.get('health')}")
     return jsonify({"result": 0}), 201
 
+def submit_report(self, report: dict, garden_request_id: int, garden_id: int):
+    """try:
+        resp = requests.post(
+            f"{self.base_url}/report/submit",
+            headers=self.headers,
+            json={
+                "garden_request_id": garden_request_id,
+                "garden_id": garden_id,
+                "report": report
+            }
+        )
+        log.info(f"Report submit: {resp.status_code}")
+        return resp.json()
+    except Exception as e:
+        log.error(f"Report грешка: {e}")
+        return None"""
+
 @plant_report_bp.post("/analyze")
 @login_required
 def analyze_from_app():
