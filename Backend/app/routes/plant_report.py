@@ -44,21 +44,17 @@ def analyze_from_app():
         with tempfile.NamedTemporaryFile(suffix=".jpg", delete=True) as f:
             f.write(b64.b64decode(image_b64))
             f.flush()
+            
             analysis = analyze_image(f.name, plant)
 
-        PlantReportModel.create(
-            garden_request_id=garden_request_id, 
-            garden_id=garden_id, 
-            user_id=request.user_id, 
-            report=analysis
-        )
+        PlantReportModel.create(garden_request_id, garden_id, request.user_id, analysis)
 
         logging.info(f"Analysis saved for garden_id: {garden_id}")
         return jsonify({"result": 0, "analysis": analysis}), 201
 
     except Exception as e:
         logging.error(f"Analysis error: {e}")
-        return jsonify({"result": 500, "error": "Internal server error during analysis"}), 500
+        return jsonify({"result": 500, "error": str(e)}), 500
  
 @plant_report_bp.get("/list")
 @login_required
