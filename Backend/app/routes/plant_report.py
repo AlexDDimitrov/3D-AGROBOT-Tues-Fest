@@ -45,8 +45,8 @@ def analyze_from_app():
     from ....docking.lib.gemini import analyze_image
     analysis = analyze_image(path, plant)
 
-    from ....docking.lib.api import submit_report
-    submit_report(analysis, garden_request_id, garden_id)
+    from ....docking.lib.api import Api
+    Api.submit_report(analysis, garden_request_id, garden_id)
 
     PlantReportModel.create(garden_request_id, garden_id, request.user_id, analysis)
     return jsonify({"result": 0, "analysis": analysis}), 201
