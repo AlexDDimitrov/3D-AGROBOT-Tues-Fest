@@ -1,9 +1,11 @@
 import logging
+import tempfile
+import base64 as b64
 from flask import Blueprint, request, jsonify
 from ..middleware.auth_guard import login_required
 from ..models.plant_report import PlantReportModel
 from ..models.garden_request import GardenRequestModel
-import requests
+from .gemini import analyze_image
  
 plant_report_bp = Blueprint("plant_report", __name__)
  
@@ -38,36 +40,21 @@ def analyze_from_app():
     if not all([image_b64, garden_id, garden_request_id, plant]):
         return jsonify({"result": 202}), 400
 
-    import tempfile, base64 as b64
-    with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as f:
-        f.write(b64.b64decode(image_b64))
-        path = f.name
-
-    from ....docking.lib.gemini import analyze_image
-    analysis = analyze_image(path, plant)
-
-    """from ....docking.lib.api import Api
-    Api.submit_report(analysis, garden_request_id, garden_id)"""
-
     try:
-        """"resp = requests.post(
-            f"{self.base_url}/report/submit",
-            headers=self.headers,
-            json={
-                "garden_request_id": garden_request_id,
-                "garden_id": garden_id,
-                "report": report
-            }
-        )
-        log.info(f"Report submit: {resp.status_code}")
-        return resp.json()
-        TO DO""""
-    except Exception as e:
-        log.error(f"Report грешка: {e}")
-        return None
+        with tempfile.NamedTemporaryFile(suffix=".jpg", delete=True) as f:
+            f.write(b64.b64decode(image_b64))
+            f.flush()
+            
+            analysis = analyze_image(f.name, plant)
 
-    PlantReportModel.create(garden_request_id, garden_id, request.user_id, analysis)
-    return jsonify({"result": 0, "analysis": analysis}), 201
+        PlantReportModel.create(garden_request_id, garden_id, request.user_id, analysis)
+
+        logging.info(f"Analysis saved for garden_id: {garden_id}")
+        return jsonify({"result": 0, "analysis": analysis}), 201
+
+    except Exception as e:
+        logging.error(f"Analysis error: {e}")
+        return jsonify({"result": 500, "error": str(e)}), 500
  
 @plant_report_bp.get("/list")
 @login_required
