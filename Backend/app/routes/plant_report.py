@@ -5,7 +5,7 @@ from flask import Blueprint, request, jsonify
 from ..middleware.auth_guard import login_required
 from ..models.plant_report import PlantReportModel
 from ..models.garden_request import GardenRequestModel
-from gemini import analyze_image
+from .gemini import analyze_image
  
 plant_report_bp = Blueprint("plant_report", __name__)
  
